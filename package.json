@@ -4,6 +4,7 @@
   "description": "Create Video Variations",
   "main": "videoCloner.js",
   "dependencies": {
+    "ffmpeg": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "node-debug": "^0.1.0"
   },

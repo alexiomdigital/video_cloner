@@ -1,54 +1,66 @@
-// Import the fluent-ffmpeg library.
-//const fluentFfmpeg = require('node_modules/fluent-ffmpeg');
 const fluentFfmpeg = require('fluent-ffmpeg');
+const fs = require('fs');
+const path = require('path');
 
-// Generate a random value in the specified range.
+// Function to create a directory if it doesn't exist
+function ensureDirectoryExists(directory) {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+}
+
+// Function to generate a random value within a specified range
 function random(min, max) {
   return Math.random() * (max - min) + min;
 }
 
-// Generate a video with the specified adjustments.
-async function generateVideo(inputVideoFile, outputVideoFile, adjustments) {
-  // Create a new fluent-ffmpeg instance for the input video file.
-  const fluentFfmpeg = new fluentFfmpeg(inputVideoFile);
+async function cloneVideo(inputVideoFile, outputVideoDir, numberOfCopies) {
+  // Ensure the output directory exists
+  ensureDirectoryExists(outputVideoDir);
 
-  // Add the specified adjustments to the fluent-ffmpeg instance.
-  for (const [key, value] of Object.entries(adjustments)) {
-    fluentFfmpeg.addOptions([`-filter:v`, `${key}=${value}`]);
-  }
+  const inputFileName = path.basename(inputVideoFile, path.extname(inputVideoFile));
 
-  // Save the output video file.
-  await fluentFfmpeg.output(outputVideoFile).save();
-}
+  for (let i = 1; i <= numberOfCopies; i++) {
+    // Create a new fluent-ffmpeg instance for the input video file.
+    const ffmpegInstance = new fluentFfmpeg(inputVideoFile);
 
-// Generate 5 unique videos from the input video file.
-async function main() {
-  // Get the input video file path.
-  const inputVideoFile = './input.mp4';
+    // Generate a random contrast adjustment (small change)
+    const randomContrast = 1.0 + random(-0.1, 0.1);
 
-  // Get the output video directory path.
-  const outputVideoDir = './output';
+    // Construct the full path to the output video file with the updated naming convention.
+    const outputFileName = `${inputFileName}_v${i}.mp4`;
+    const outputVideoFile = path.join(outputVideoDir, outputFileName);
 
-  // Generate 5 unique videos.
-  for (let i = 0; i < 5; i++) {
-    // Generate a random set of adjustments.
-    const adjustments = {
-      colorchannelmixer: random(0.5, 1.5),
-      contrast: random(0.5, 1.5),
-      bitrate: random(500000, 1000000),
-      zoom: random(0.5, 1.5),
-      rotate: random(-30, 30),
-      speed: random(0.5, 1.5),
-    };
+    // Log the output file path for debugging.
+    console.log(`Output file path (${i}):`, outputVideoFile);
 
-    // Generate the output video file path.
-    const outputVideoFile = `${outputVideoDir}/output${i}.mp4`;
-
-    // Generate the video with the specified adjustments.
-    await generateVideo(inputVideoFile, outputVideoFile, adjustments);
+    // Clone the input video to the specified output file with contrast adjustment
+    await new Promise((resolve, reject) => {
+      ffmpegInstance
+        .on('end', resolve)
+        .on('error', reject)
+        .output(outputVideoFile)
+        .audioCodec('aac')
+        .videoCodec('libx264')
+        .videoFilter(`eq=contrast=${randomContrast}`)
+        .run();
+    });
   }
 }
-
 
 // Start the video cloning process.
-main();
+const inputVideoFile = process.argv[2];
+const outputVideoDir = process.argv[3];
+
+if (inputVideoFile && outputVideoDir) {
+  const numberOfCopies = 5; // Change this to the desired number of copies
+  cloneVideo(inputVideoFile, outputVideoDir, numberOfCopies)
+    .then(() => {
+      console.log('Video cloning complete.');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+} else {
+  console.error('Usage: node videoCloner.js <inputVideoFile> <outputVideoDir>');
+}
