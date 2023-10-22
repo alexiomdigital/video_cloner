@@ -1,0 +1,27 @@
+{
+  "name": "video_cloner",
+  "version": "1.0.0",
+  "description": "Create Video Variations",
+  "main": "videoCloner.js",
+  "dependencies": {
+    "fluent-ffmpeg": "^2.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexiomdigital/video_cloner.git"
+  },
+  "keywords": [
+    "Video",
+    "Clone"
+  ],
+  "author": "Alexiom Digital",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexiomdigital/video_cloner/issues"
+  },
+  "homepage": "https://github.com/alexiomdigital/video_cloner#readme"
+}
